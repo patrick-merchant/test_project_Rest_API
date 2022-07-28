@@ -20,24 +20,25 @@ type Post struct {
 
 var Posts []Post
 
-var visitCounter = 0
-
 // var postCount = len(Posts)
 
 // Visit tracker - closure functions & the wrapper technique.
 func trackVisits(handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+
+	visitCounter := 0
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		visitCounter++
 		res := "no visits"
 		if visitCounter == 1 {
-			res = fmt.Sprint("1 visit !")
+			res = "1 visit !"
 		} else {
 			res = fmt.Sprintf("%v visits !", visitCounter)
 		}
 
 		fmt.Println(res)
 
-		handler(w, r);
+		handler(w, r)
 	}
 }
 
@@ -47,7 +48,6 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRequests() {
-
 	var myRouter = mux.NewRouter().StrictSlash(true)
 
 	myRouter.HandleFunc("/", trackVisits(homePageHandler))
