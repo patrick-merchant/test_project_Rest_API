@@ -20,22 +20,44 @@ type Post struct {
 
 var Posts []Post
 
-func homePage(w http.ResponseWriter, r *http.Request) {
+var visitCounter = 0
+
+// var postCount = len(Posts)
+
+// Visit tracker - closure functions & the wrapper technique.
+func trackVisits(handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		visitCounter++
+		res := "no visits"
+		if visitCounter == 1 {
+			res = fmt.Sprint("1 visit !")
+		} else {
+			res = fmt.Sprintf("%v visits !", visitCounter)
+		}
+
+		fmt.Println(res)
+
+		handler(w, r);
+	}
+}
+
+func homePageHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Welcome to the HomePage!")
 	fmt.Println("Endpoint Hit: homePage")
 }
 
 func handleRequests() {
+
 	var myRouter = mux.NewRouter().StrictSlash(true)
 
-	myRouter.HandleFunc("/", homePage)
-	myRouter.HandleFunc("/posts", returnAllPosts)
+	myRouter.HandleFunc("/", trackVisits(homePageHandler))
+	myRouter.HandleFunc("/posts", trackVisits(returnAllPosts))
 	myRouter.HandleFunc("/post", createNewPost).Methods("POST")
 	myRouter.HandleFunc("/post/{id}", deletePost).Methods("DELETE")
 	myRouter.HandleFunc("/post/{id}", updatePost).Methods("PUT")
-	myRouter.HandleFunc("/post/{id}", returnSinglePost)
+	myRouter.HandleFunc("/post/{id}", trackVisits(returnSinglePost))
 
-	log.Fatal(http.ListenAndServe(":8080", myRouter))
+	log.Fatal(http.ListenAndServe(":8083", myRouter))
 }
 
 // Retrieving all posts
